@@ -11,6 +11,10 @@ interface IProdByCatProps {
     setGetProductsByCatID: React.Dispatch<React.SetStateAction<ProductListParams[]>>
 }
 
+interface ITrendingProductProps {
+    setTrendingProducts: React.Dispatch<React.SetStateAction<ProductListParams[]>>
+}
+
 export const fetchCategories = async ({ setGetCategory}: ICatProps) => {
     try {
         const response = await axios.get("http://172.16.17.83:8888/category/getAllCategories");
@@ -36,7 +40,7 @@ export const fetchCategories = async ({ setGetCategory}: ICatProps) => {
 
 export const fetchProductsByCatID = async ({ setGetProductsByCatID, catID}: IProdByCatProps) => {
     try {
-        const response: FetchProductsParam = await axios.get(`http://10.106.21.4:8888/product/getProductByCatID/${catID}`);
+        const response: FetchProductsParam = await axios.get(`http://172.16.17.83:8888/product/getProductByCatID/${catID}`);
         console.log("API Response: ", response.data);
 
         if(Array.isArray(response.data)){
@@ -55,5 +59,28 @@ export const fetchProductsByCatID = async ({ setGetProductsByCatID, catID}: IPro
     } catch (error) {
         console.log("axios get error", error);
         setGetProductsByCatID([]);
+    }
+}
+export const fetchTrendingProducts = async ({setTrendingProducts} : ITrendingProductProps) => {
+    try {
+        const response: FetchProductsParam = await axios.get("http://172.16.17.83:8888/product/getTrendingProducts");
+        console.log("API Response: ", response.data);
+
+        if(Array.isArray(response.data)){
+            const fixedData = response.data.map(item => ({
+                ...item,
+                images: item.images.map((img: string) => 
+                    img.replace("http://localhost", "http://172.16.17.83")
+                ) 
+            }));
+
+            setTrendingProducts(fixedData);
+        } else {
+            console.warn("fetchCategories: Du lieu API khong phai la mang", response.data);
+            setTrendingProducts([]);
+        }
+    } catch (error) {
+        console.log("axios get error", error);
+        setTrendingProducts([]);
     }
 }
