@@ -54,6 +54,7 @@ const HomeScreen = ({navigation, route}: TabsStackScreenProps<"Home">) => {
                     {
                         getCategory.map((item, index) => (
                             <CategoryCard
+                                key={index}
                                 item={{ "name" : item.name, "images" : item.images, _id : item._id}}
                                 catStyleProps={{
                                     "height": 50,
