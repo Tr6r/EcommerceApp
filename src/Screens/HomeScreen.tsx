@@ -1,4 +1,4 @@
-import {View, Text, Platform,ScrollView} from 'react-native';
+import {View, Text, Platform,ScrollView,Pressable,Alert} from 'react-native';
 import React,{useState,useEffect,useCallback} from 'react';
 import { TabsStackScreenProps } from '../Navigation/TabsNavigator';
 import { SafeAreaView } from 'react-native';
@@ -6,8 +6,10 @@ import { HeadersComponent } from '../Components/HeaderComponent/HeaderComponent'
 import ImageSlider from '../HomeScreenComponents/ImageSlider';
 import { ProductListParams } from './../TypesCheck/HomeProps';
 import { CategoryCard } from '../Components/HomeScreenComponents/CategoryCard';
-import { fetchCategories } from '../MiddeleWares/HomeMiddeWare';
+import { fetchCategories,fetchProductsByCatID } from '../MiddeleWares/HomeMiddeWare';
 import { useFocusEffect } from '@react-navigation/native';
+
+
 type Props = {}
 
 const HomeScreen = ({navigation, route}: TabsStackScreenProps<"Home">) => {
@@ -22,18 +24,28 @@ const HomeScreen = ({navigation, route}: TabsStackScreenProps<"Home">) => {
 
     const [getCategory, setGetCategory] = useState<ProductListParams[]>([])
     const [activeCat, setActiveCat] = useState<string>("")
+    const [getProductsByCatID, setGetProductsByCatID] = useState<ProductListParams[]>([]);
 
     useEffect(() => {
         fetchCategories({setGetCategory});
     }, []);
 
-
+    useEffect(() => {
+        console.log("fetchProductByCatID: ", fetchProductsByCatID);
+        if(activeCat) {
+            fetchProductsByCatID({ setGetProductsByCatID, catID: activeCat});
+        }
+    }, [activeCat]);
 
     useFocusEffect(
         useCallback(() => {
             fetchCategories({setGetCategory});
-        }, []) //dependency array rong de tranh goi lai khong can thiet!
+            if (activeCat){
+                fetchProductsByCatID({ setGetProductsByCatID, catID: activeCat});
+            }
+        }, [activeCat]) //dependency array rong de tranh goi lai khong can thiet!
     );
+
     return (
         <SafeAreaView style={{ paddingTop: Platform.OS === "android" ? 40:0, flex: 1, backgroundColor: "black"}}>
             <HeadersComponent gotoCartScreen={gotoCartScreen}/>
@@ -69,6 +81,47 @@ const HomeScreen = ({navigation, route}: TabsStackScreenProps<"Home">) => {
                         ))
                     }
 
+                </ScrollView>
+            </View>
+            <View style= {{
+                backgroundColor: "pink", flexDirection: "row", justifyContent: "space-between",
+                marginTop: 10
+            }}>
+                <Text style={{ fontSize: 14, fontWeight: "bold", padding: 10}}>
+                    Products from Selected Category
+                </Text>
+                <Pressable>
+                    <Text style= {{fontSize: 11, fontWeight: "bold", padding: 10}}>
+                        See all
+                    </Text>
+                </Pressable>
+            </View>
+
+            <View style= {{
+                backgroundColor: "#fff", borderWidth: 7, borderColor: "green", flexDirection: "row",
+                justifyContent: "space-between", alignItems: "center", flexWrap: "wrap"
+            }}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {
+                        getProductsByCatID?.length> 0 ? (
+                            getProductsByCatID.map((item, index) => (
+                                <CategoryCard
+                                    key={index}
+                                    item={{"name": item.name, "images": item.images, "_id": item._id}}
+                                    catStyleProps={{
+                                        "height": 100,
+                                        "width": 100,
+                                        "radius": 10,
+                                        "resizeMode": "contain"
+                                    }}
+                                    catProps={{
+                                        "onPress": () => Alert.alert(item.name)
+                                    }}
+                                 />
+                            ))
+                        ) : (
+                            <Text> Khong co san pham nao</Text>
+                        )}
                 </ScrollView>
             </View>
         

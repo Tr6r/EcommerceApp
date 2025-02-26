@@ -6,6 +6,10 @@ import { ProductListParams, FetchProductsParam } from "../TypesCheck/HomeProps";
 interface ICatProps {
     setGetCategory: React.Dispatch<React.SetStateAction<ProductListParams[]>>
 }
+interface IProdByCatProps {
+    catID: string;
+    setGetProductsByCatID: React.Dispatch<React.SetStateAction<ProductListParams[]>>
+}
 
 export const fetchCategories = async ({ setGetCategory}: ICatProps) => {
     try {
@@ -29,3 +33,27 @@ export const fetchCategories = async ({ setGetCategory}: ICatProps) => {
         setGetCategory([]);
     }
 };
+
+export const fetchProductsByCatID = async ({ setGetProductsByCatID, catID}: IProdByCatProps) => {
+    try {
+        const response: FetchProductsParam = await axios.get(`http://10.106.21.4:8888/product/getProductByCatID/${catID}`);
+        console.log("API Response: ", response.data);
+
+        if(Array.isArray(response.data)){
+            const fixedData = response.data.map(item => ({
+                ...item,
+                images: item.images.map((img: string) => 
+                    img.replace("http://localhost", "http://172.16.17.83")
+                )
+            }));
+
+            setGetProductsByCatID(fixedData);
+        } else {
+            console.warn("fetchProductsByCatID: Du lieu API khong phai la mang", response.data);
+            setGetProductsByCatID([]);
+        }
+    } catch (error) {
+        console.log("axios get error", error);
+        setGetProductsByCatID([]);
+    }
+}
